@@ -15,7 +15,7 @@ impl Stepper {
     }
 
     pub fn step(&mut self, direction: bool) {
-        if (direction) { self.dir.set_high() }
+        if direction { self.dir.set_high() }
         else { self.dir.set_low() }
         self.step.set_high();
     }
