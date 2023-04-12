@@ -1,7 +1,7 @@
-use image::{ self, imageops::{resize, FilterType::Nearest} };
+// use image::{ self, imageops::{resize, FilterType::Nearest} };
+// use crate::image_process::ImageProcess;
 use driver::{MotorDriver, cursor::Cursor};
 use stepper::Stepper;
-use crate::image_process::ImageProcess;
 
 mod image_process;
 mod driver;
@@ -11,12 +11,22 @@ fn main() {
     let mut x_motor: Stepper = Stepper::new(20, 21); // Stepper struct handles low level stepper movement
     let mut y_motor: Stepper = Stepper::new(8, 7);
 
-    let mut driver: MotorDriver = MotorDriver::new(&mut x_motor, &mut y_motor, &cursor); // 
+    let mut driver: MotorDriver = MotorDriver::new(x_motor, y_motor, cursor, 5); // 
 
-    let mut line = String::new();
-    println!("Set zero");
-    let b1 = std::io::stdin().read_line(&mut line).unwrap();
-    
+    // driver.go_position(100.0, 100.0);
+    // driver.go_position(50.0, 40.0)
+
+
+    driver.go_position(100.0, 100.0);
+    driver.go_position(200.0, 200.0);
+    driver.go_position(100.0, 300.0);
+    driver.go_position(0.0, 200.0);
+    driver.go_position(100.0, 100.0);
+
+    // let mut line = String::new();
+    // println!("Set zero");
+    // let b1 = std::io::stdin().read_line(&mut line).unwrap();
+
 
     // let img = image::open("/home/anthonyb/projects/eas/EAS-Backend-Server/upload/main.jpeg")
     //                     .unwrap()

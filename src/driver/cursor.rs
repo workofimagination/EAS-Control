@@ -1,19 +1,19 @@
 use core::fmt;
 
 pub struct Cursor {
-    pub x: usize,
-    pub y: usize,
+    pub x: f32,
+    pub y: f32,
 
 }
 
 impl Cursor {
     pub fn new() -> Self {
-        Self { x: 0, y: 0}
+        Self { x: 0.0, y: 0.0}
     }
 
     pub fn zero(&mut self) {
-        self.x = 0;
-        self.y = 0;
+        self.x = 0.0;
+        self.y = 0.0;
     }
 }
 
