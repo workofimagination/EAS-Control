@@ -3,14 +3,14 @@ use websocket::OwnedMessage;
 use websocket::receiver::Reader;
 use websocket::sender::Writer;
 
-pub struct WebsocketConnection {
+pub struct WebsocketClient {
     recv: Reader<std::net::TcpStream>,
     sender: Writer<std::net::TcpStream>
 }
 
 impl WebsocketClient{
-    pub fn initalize() -> WebsocketConnection {
-        let server = "ws:/0.0.0.0:3002";
+    pub fn initalize() -> WebsocketClient {
+        let server = "ws:/0.0.0.0:3001";
         let ws_client = websocket::ClientBuilder::new(server)
             .unwrap()
             .connect_insecure()
@@ -18,7 +18,7 @@ impl WebsocketClient{
 
         let (recv, sender) = ws_client.split().unwrap();
 
-        return WebsocketConnection { recv, sender }
+        return WebsocketClient { recv, sender }
 
     }
 
