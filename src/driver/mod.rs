@@ -22,22 +22,54 @@ impl MotorDriver {
             micro_pin: Gpio::new().unwrap().get(micro_pin).unwrap().into_output(), 
             cursor, 
             step_delay: Duration::from_millis(100) ,
-            micro_delay: Duration::from_micros(250),
+            micro_delay: Duration::from_micros(100),
         }
     }
 
     pub fn set_zero(&mut self) { self.cursor.zero(); }
 
-    pub fn go_zero(&mut self) { self.go_position(0.0, 0.0) }
+    pub fn go_zero(&mut self) { self.go_position(0.0, 0.0)  }
 
     pub fn go_position(&mut self, to_x: f32, to_y: f32) {
-        // poisition to position v1 - Eric
-
         //TODO add horizontal logic.
         self.angled_line(to_x, to_y) 
     }
 
-    pub fn angled_line(&mut self, to_x: f32, to_y: f32) {
+    pub fn rec_line(&mut self, to_x: f32, to_y: f32) {
+
+        let precision: f32 = 0.0625; // 1/16
+        let divisions = (1.0/precision) as usize;
+
+        let mut run = to_x - self.cursor.x;
+        let mut rise = to_y - self.cursor.y;
+
+        let mut run_dir: bool = true;
+        let mut rise_dir: bool = true;
+
+        if run < 0.0 { run_dir = false; run = run * -1.0; }
+        if rise < 0.0 { rise_dir = false; rise = rise * -1.0; }
+        for step in 1..=(run*divisions as f32) as usize {
+            self.x_motor.step(run_dir);
+            self.cursor.x += if run_dir { precision } else { -precision };
+            self.micro_delay();
+            self.reset();
+            self.micro_delay();
+        }
+        for step in 1..=(rise*divisions as f32) as usize {
+            self.y_motor.step(rise_dir);
+            self.cursor.y += if rise_dir { precision } else { -precision };
+            self.micro_delay();
+            self.reset();
+            self.micro_delay();            
+        }
+    }
+
+    fn angled_line(&mut self, to_x: f32, to_y: f32) {
+        // Position to position v1.1 - Eric
+
+        let precision: f32 = 0.0625; // 1/16
+        let divisions = (1.0/precision) as usize;
+
         let mut run = to_x - self.cursor.x;
         let mut rise = to_y - self.cursor.y;
 
@@ -59,36 +91,60 @@ impl MotorDriver {
             false
         };
 
+        let dependent_step_count: usize = {
+            let mut count: usize = 0;
+            let mut value: f32 = 0.0;
+            if (run_larger) {
+                while value < rise {
+                    count += 1;
+                    value += precision;
+                }
+                count
+            } else {
+                while value < run {
+                    count += 1;
+                    value += precision;
+                }
+                count
+            }
+        };
+
         let mut sum_run: f32 = 0.0; 
         let mut sum_rise: f32 = 0.0;
-        self.micro_pin.set_high();
         while if run_larger { sum_run < real_run } else { sum_rise < real_rise } {
+            let mut remaining_steps = dependent_step_count;
             if (run_larger) {
-                self.step_x(run_dir);
-                self.cursor.x += if run_dir { 0.0625 } else { -0.0625 };
-                sum_run += 0.0625;
-                sum_rise += rise*0.0625;
-                if (sum_rise > 0.055) {
-                    self.step_y(rise_dir);
-                    sum_rise = 0.0;
-                    self.cursor.y += if rise_dir { 0.0625 } else { -0.0625 };
+                for step in 1..=divisions {
+                    self.step_x(run_dir);
+                    if remaining_steps > 0 {
+                        self.step_y(rise_dir);
+                        self.cursor.y += if rise_dir { precision } else { -precision };
+                        sum_rise += precision;
+                        remaining_steps -= 1;
+                    }
+                    sum_run += precision;
+                    self.cursor.x += if run_dir { precision } else { -precision };
+                    self.micro_delay();
+                    self.reset();
+                    self.micro_delay();                    
                 }
             } else {
-                self.step_y(rise_dir);
-                self.cursor.y += if rise_dir { 0.0625 } else { -0.0625 };
-                sum_rise += 0.0625;
-                sum_run += run*0.0625;
-                if (sum_run > 0.055) {
-                    self.step_x(run_dir);
-                    sum_run = 0.0;
-                    self.cursor.x += if run_dir { 0.0625 } else { -0.0625 };
+                for step in 1..=divisions {
+                    self.step_y(rise_dir);
+                    if remaining_steps > 0 {
+                        self.step_x(run_dir);
+                        self.cursor.x += if run_dir { precision } else { -precision };
+                        sum_run += precision;
+                        remaining_steps -= 1;
+                    }
+                    sum_rise += precision;
+                    self.cursor.y += if rise_dir { precision } else { -precision };
+                    self.micro_delay();
+                    self.reset();
+                    self.micro_delay();
                 }
             }
-            self.micro_delay();
-            self.reset();
-            self.micro_delay();
         }
-        self.micro_pin.set_low();
     }
 
     fn step_x(&mut self, dir: bool) { self.x_motor.step(dir) }

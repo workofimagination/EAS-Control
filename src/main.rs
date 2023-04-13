@@ -16,12 +16,13 @@ fn main() {
     // driver.go_position(100.0, 100.0);
     // driver.go_position(50.0, 40.0)
 
-
     driver.go_position(100.0, 100.0);
-    driver.go_position(200.0, 200.0);
-    driver.go_position(100.0, 300.0);
     driver.go_position(0.0, 200.0);
+    driver.go_position(100.0, 250.0);
+    driver.go_position(175.0, 200.0);
     driver.go_position(100.0, 100.0);
+    driver.go_zero()    
+    
 
     // let mut line = String::new();
     // println!("Set zero");
