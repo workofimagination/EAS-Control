@@ -4,6 +4,8 @@ use crate::stepper::Stepper;
 use cursor::Cursor;
 use rppal::gpio::{Gpio, OutputPin};
 
+use crate::parser::Coordinate;
+
 pub mod cursor;
 pub struct MotorDriver {
     x_motor: Stepper,
@@ -22,7 +24,7 @@ impl MotorDriver {
             micro_pin: Gpio::new().unwrap().get(micro_pin).unwrap().into_output(), 
             cursor, 
             step_delay: Duration::from_millis(100) ,
-            micro_delay: Duration::from_micros(100),
+            micro_delay: Duration::from_micros(25),
         }
     }
 
@@ -30,13 +32,20 @@ impl MotorDriver {
 
     pub fn go_zero(&mut self) { self.go_position(0.0, 0.0)  }
 
+    pub fn draw_coordinates(&mut self, coordinates: Vec<Coordinate>) {
+        for coordinate in coordinates {
+            println!("{:?}, {:?}", coordinate.x, coordinate.y);
+            self.go_position(coordinate.x, coordinate.y);
+        }
+    }
+
+
     pub fn go_position(&mut self, to_x: f32, to_y: f32) {
         //TODO add horizontal logic.
-        self.angled_line(to_x, to_y) 
+        self.angled_line(to_x, to_y);
     }
 
     pub fn rec_line(&mut self, to_x: f32, to_y: f32) {
-
         let precision: f32 = 0.0625; // 1/16
         let divisions = (1.0/precision) as usize;
 
@@ -66,7 +75,6 @@ impl MotorDriver {
 
     fn angled_line(&mut self, to_x: f32, to_y: f32) {
         // Position to position v1.1 - Eric
-
         let precision: f32 = 0.0625; // 1/16
         let divisions = (1.0/precision) as usize;
 
@@ -79,15 +87,15 @@ impl MotorDriver {
         if run < 0.0 { run_dir = false; run = run * -1.0; }
         if rise < 0.0 { rise_dir = false; rise = rise * -1.0; }
 
-        let real_run = run;
-        let real_rise = rise;
+        let real_run = run.clone();
+        let real_rise = rise.clone();
         let run_larger: bool = if run > rise {
             rise = rise / run;
             run = 1.0;
             true
         } else {
-            rise = 1.0;
             run = run / rise;
+            rise = 1.0;
             false
         };
 
@@ -145,10 +153,11 @@ impl MotorDriver {
                 }
             }
         }
+        
     }
 
     fn step_x(&mut self, dir: bool) { self.x_motor.step(dir) }
-    fn step_y(&mut self, dir: bool) { self.y_motor.step(dir) }
+    fn step_y(&mut self, dir: bool) { self.y_motor.step(!dir) }
 
     fn step_delay(&self) { thread::sleep(self.step_delay); }
     fn micro_delay(&self) { thread::sleep(self.micro_delay) }
