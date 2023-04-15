@@ -2,26 +2,37 @@
 // use crate::image_process::ImageProcess;
 use driver::{MotorDriver, cursor::Cursor};
 use stepper::Stepper;
+use parser::FileParser;
 
+mod parser;
 mod image_process;
 mod driver;
 mod stepper;
 fn main() {
+
+
+
+
     let mut cursor: Cursor = Cursor::new(); // Cursor - Virtual pointer to the position of the x-y axis motors.
     let mut x_motor: Stepper = Stepper::new(20, 21); // Stepper struct handles low level stepper movement
     let mut y_motor: Stepper = Stepper::new(8, 7);
 
     let mut driver: MotorDriver = MotorDriver::new(x_motor, y_motor, cursor, 5); // 
 
+    driver.draw_coordinates(FileParser::parse());
+
+
+
+
     // driver.go_position(100.0, 100.0);
     // driver.go_position(50.0, 40.0)
 
-    driver.go_position(100.0, 100.0);
-    driver.go_position(0.0, 200.0);
-    driver.go_position(100.0, 250.0);
-    driver.go_position(175.0, 200.0);
-    driver.go_position(100.0, 100.0);
-    driver.go_zero()    
+    // driver.go_position(100.0, 100.0);
+    // driver.go_position(0.0, 200.0);
+    // driver.go_position(100.0, 250.0);
+    // driver.go_position(175.0, 200.0);
+    // driver.go_position(100.0, 100.0);
+    // driver.go_zero()    
     
 
     // let mut line = String::new();
