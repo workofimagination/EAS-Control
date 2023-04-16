@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufRead, BufReader, self }};
+use std::{fs::File, io::{BufRead, BufReader, self }, io::{Write}};
 
 pub struct Coordinate {
     pub x: f32,
@@ -59,6 +59,19 @@ impl FileParser {
     }
 
     fn read_file() -> io::Lines<BufReader<File>> { return io::BufReader::new(File::open("./first.gs").unwrap()).lines(); }
+
+    fn write_to_file(contents: &String) -> bool {
+        let mut file = match File::create("./first.gs") {
+            Ok(file) => file,
+            Err(_) => return false
+        };
+
+        match write!(file, "{}", contents) {
+            Ok(_) => return true,
+            Err(_) => return false
+        };
+
+    }
 
 }
 
